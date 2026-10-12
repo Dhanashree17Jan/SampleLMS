@@ -5,7 +5,7 @@ CREATE FUNCTION pg_temp.assert_true(ok boolean,label text) RETURNS void LANGUAGE
 CREATE FUNCTION pg_temp.expect_failure(statement text,fragment text,label text) RETURNS void LANGUAGE plpgsql AS $$ BEGIN
  BEGIN EXECUTE statement; EXCEPTION WHEN OTHERS THEN IF position(lower(fragment) IN lower(SQLERRM))=0 THEN RAISE EXCEPTION 'Unexpected failure for %: %',label,SQLERRM; END IF; RAISE NOTICE 'PASS: %',label; RETURN; END;
  RAISE EXCEPTION 'FAILED: % unexpectedly succeeded',label; END $$;
-DO $$ DECLARE actor bigint; trainer bigint; learner bigint; coord bigint; outsider bigint; p bigint; p_other bigint; s bigint; template bigint; plan10 bigint; plan2 bigint; plan4 bigint; revised bigint; a bigint; b bigint; c bigint; d bigint; trainees bigint[]='{}'; t bigint; att bigint; ass bigint; payload jsonb; first_payload jsonb; today date=(now() AT TIME ZONE 'Asia/Kolkata')::date;
+DO $$ DECLARE actor bigint; trainer bigint; learner bigint; coord bigint; outsider bigint; p bigint; p_other bigint; s bigint; template bigint; plan10 bigint; plan2 bigint; plan4 bigint; today_batch bigint; attendance_actor bigint; future_status text; revised bigint; a bigint; b bigint; c bigint; d bigint; trainees bigint[]='{}'; t bigint; att bigint; ass bigint; payload jsonb; first_payload jsonb; today date=(now() AT TIME ZONE 'Asia/Kolkata')::date;
 BEGIN
  SELECT id INTO actor FROM app_user WHERE role='Administrator' AND active ORDER BY id LIMIT 1;
  SELECT id INTO trainer FROM app_user WHERE role='Trainer' AND active ORDER BY id LIMIT 1;
@@ -76,6 +76,22 @@ BEGIN
  PERFORM pg_temp.expect_failure(format('SELECT save_batch(%s,%L::jsonb,%s)',a,payload::text,actor),'Draft','AC15 scheduled training setup is locked');
  PERFORM pg_temp.expect_failure(format('CALL transition_batch(%s,''Completed'','''',%s)',a,actor),'Not marked','AC19 unmarked attendance blocks completion');
  PERFORM pg_temp.expect_failure(format('CALL save_attendance(%s,1,''[]''::jsonb,'''',%s)',b,actor),'future','AC23 future attendance rejected');
+ SELECT jsonb_agg(jsonb_build_object('id',at.id,'revision',at.revision,'status','Present','remarks','Tampered future entry')) INTO first_payload FROM attendance at JOIN batch_assignment ba ON ba.id=at.assignment_id JOIN trainingplandetails pd ON pd.training_plan_detail_id=at.training_plan_detail_id WHERE ba.batch_id=b AND pd.day_number=1;
+ FOREACH attendance_actor IN ARRAY ARRAY[actor,coord,trainer] LOOP
+  FOREACH future_status IN ARRAY ARRAY['Present','Absent'] LOOP
+   SELECT jsonb_agg(value||jsonb_build_object('status',future_status)) INTO first_payload FROM jsonb_array_elements(first_payload);
+   PERFORM pg_temp.expect_failure(format('CALL save_attendance(%s,1,%L::jsonb,''Admin override attempt'',%s)',b,first_payload::text,attendance_actor),'future','Future populated attendance blocked for staff and administrator');
+  END LOOP;
+ END LOOP;
+ PERFORM pg_temp.assert_true(NOT EXISTS(SELECT 1 FROM attendance at JOIN batch_assignment ba ON ba.id=at.assignment_id WHERE ba.batch_id=b AND (at.status<>'Not marked' OR at.revision<>0 OR at.marked_at IS NOT NULL OR at.remarks<>'')),'Rejected future writes leave status, revision and history unchanged');
+ today_batch=save_batch(0,jsonb_build_object('code','__VERIFY_TODAY','name','Current day attendance','project_id',p,'school_id',s,'training_plan_id',plan2,'number_of_days',2,'start_date',today,'end_date',today+1,'trainer_id',trainer),actor);
+ CALL assign_trainees(today_batch,ARRAY[trainees[1]],actor); CALL transition_batch(today_batch,'Scheduled','',actor);
+ SELECT jsonb_agg(jsonb_build_object('id',at.id,'revision',at.revision,'status','Present','remarks','Today is permitted')) INTO first_payload FROM attendance at JOIN batch_assignment ba ON ba.id=at.assignment_id JOIN trainingplandetails pd ON pd.training_plan_detail_id=at.training_plan_detail_id WHERE ba.batch_id=today_batch AND pd.day_number=1;
+ CALL save_attendance(today_batch,1,first_payload,'',trainer);
+ PERFORM pg_temp.assert_true(EXISTS(SELECT 1 FROM attendance at JOIN batch_assignment ba ON ba.id=at.assignment_id WHERE ba.batch_id=today_batch AND at.status='Present' AND at.marked_by=trainer),'Trainer can mark today without a correction reason');
+ SELECT jsonb_agg(jsonb_build_object('id',at.id,'revision',at.revision,'status','Absent','remarks','Tomorrow attempt')) INTO first_payload FROM attendance at JOIN batch_assignment ba ON ba.id=at.assignment_id JOIN trainingplandetails pd ON pd.training_plan_detail_id=at.training_plan_detail_id WHERE ba.batch_id=today_batch AND pd.day_number=2;
+ PERFORM pg_temp.expect_failure(format('CALL save_attendance(%s,1,%L::jsonb,''Forged current-day request'',%s)',today_batch,first_payload::text,actor),'outside','Future attendance record cannot be submitted as today');
+ PERFORM pg_temp.expect_failure(format('CALL save_attendance(%s,2,%L::jsonb,'''',%s)',today_batch,first_payload::text,actor),'future','Future derived day blocked even when batch starts today');
  SELECT id INTO outsider FROM batch_assignment WHERE batch_id=a AND trainee_id=trainees[2];
  PERFORM pg_temp.expect_failure(format('CALL submit_feedback(%s,1,''{"q1":"4"}''::jsonb,'''',%s)',outsider,learner),'denied','AC20 another trainee feedback is denied');
  PERFORM pg_temp.assert_true(NOT can_project(coord,p_other),'Coordinator cannot access unassigned project');

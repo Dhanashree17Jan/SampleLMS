@@ -87,6 +87,40 @@ try{
  assert.equal(await page.locator('.activity').count(),4);
  assert.equal(await page.getByRole('link',{name:'Edit draft',exact:true}).count(),0);
  console.log('PASS: four-day plan detail reload, persisted boundary templates and classroom topics, publication and immutable published view');
+ await page.goto(base+'/Batches');
+ const ongoingUrl=await page.locator('tr').filter({hasText:'DEMO-B01'}).getByRole('link').getAttribute('href');
+ const upcomingUrl=await page.locator('tr').filter({hasText:'DEMO-B02'}).getByRole('link').getAttribute('href');
+ const detailResponse=await page.goto(base+ongoingUrl);
+ const serverDate=detailResponse.headers()['date'];assert(serverDate,'Server date is available for attendance checks');
+ const indiaToday=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(serverDate));
+ async function activityDates(){
+  return page.locator('section.panel').filter({has:page.getByRole('heading',{name:'Daily activities',exact:true})}).locator('tbody tr').evaluateAll(rows=>rows.map(row=>({date:row.cells[1].innerText.trim(),href:row.querySelector('a[href^="/Attendance"]')?.getAttribute('href')})));
+ }
+ const ongoingActivities=await activityDates();
+ assert(ongoingActivities.every(activity=>/^\d{4}-\d{2}-\d{2}$/.test(activity.date)&&activity.href),'Activities provide comparable dates and attendance links');
+ const editableActivity=ongoingActivities.find(activity=>activity.date===indiaToday)??ongoingActivities.filter(activity=>activity.date<indiaToday).at(-1);
+ assert(editableActivity,'The ongoing demo batch has a current or past activity');
+ let futureActivity=ongoingActivities.find(activity=>activity.date>indiaToday);
+ if(!futureActivity){await page.goto(base+upcomingUrl);futureActivity=(await activityDates()).find(activity=>activity.date>indiaToday);}
+ assert(futureActivity,'A future activity must exist in DEMO-B01 or DEMO-B02; refresh demo fixture dates if both batches have ended');
+ await page.goto(base+futureActivity.href);
+ assert.match(await page.locator('.notice.info').innerText(),/Attendance cannot be marked for a future date\./);
+ assert(await page.locator('[name="status"]').count()>0,'Future activity has a trainee roster');
+ assert(await page.locator('[name="status"]').evaluateAll(fields=>fields.every(field=>field.disabled)));
+ assert(await page.locator('[name="remarks"]').count()>0,'Future activity shows read-only remarks');
+ assert(await page.locator('[name="remarks"]').evaluateAll(fields=>fields.every(field=>field.disabled||field.readOnly)));
+ assert.equal(await page.getByRole('button',{name:'Mark all present',exact:true}).count(),0);
+ assert.equal(await page.getByRole('button',{name:'Save attendance',exact:true}).count(),0);
+ assert.equal(await page.locator('[name="reason"]').count(),0);
+ await page.screenshot({path:new URL('../artifacts/attendance-future.png',import.meta.url).pathname.replace(/^\/([A-Za-z]:)/,'$1'),fullPage:true});
+ console.log('PASS: future attendance explains availability and disables all editing controls');
+ await page.goto(base+editableActivity.href);
+ assert(await page.getByRole('button',{name:'Mark all present',exact:true}).isVisible());
+ assert(await page.getByRole('button',{name:'Save attendance',exact:true}).isVisible());
+ assert(await page.locator('[name="status"]').evaluateAll(fields=>fields.length>0&&fields.every(field=>!field.disabled)));
+ assert(await page.locator('[name="remarks"]').evaluateAll(fields=>fields.length>0&&fields.every(field=>!field.disabled&&!field.readOnly)));
+ assert(await page.locator('[name="reason"]').isVisible());
+ console.log(`PASS: ${editableActivity.date===indiaToday?'current-day':'past-day'} administrator attendance remains editable`);
  await page.goto(base+'/Masters/Edit?kind=template');await page.getByRole('button',{name:'Add question'}).click();assert.equal(await page.locator('.question-row').count(),2);console.log('PASS: feedback question editor');
  await page.goto(base+'/Batches');const draftRow=page.locator('tr').filter({hasText:'DEMO-B04'});await draftRow.getByRole('link').click();await page.getByRole('link',{name:'Edit draft',exact:true}).click();await Promise.all([page.waitForURL(/Batches\/Detail/),page.getByRole('button',{name:'Save draft batch'}).click()]);assert(await page.locator('.notice.success').innerText().then(t=>t.includes('Batch saved')));console.log('PASS: valid MVC batch save through repository');
  await page.goto(base+'/');await page.setViewportSize({width:390,height:844});await page.waitForFunction(()=>document.querySelector('.sidebar').getBoundingClientRect().right<=1);await page.screenshot({path:new URL('../artifacts/dashboard-mobile.png',import.meta.url).pathname.replace(/^\/([A-Za-z]:)/,'$1'),fullPage:true});

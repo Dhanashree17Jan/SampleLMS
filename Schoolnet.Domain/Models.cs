@@ -29,6 +29,7 @@ public sealed class Screen
     public Dictionary<string,List<Record>> Choices { get; set; } = new();
     public string Error { get; set; } = "";
     public int Day { get; set; } = 1;
+    public AttendanceAvailability? Attendance { get; set; }
     public Dictionary<string,string> Filters { get; set; } = new();
     public List<Record> Options(string key) => Choices.GetValueOrDefault(key) ?? [];
 }
