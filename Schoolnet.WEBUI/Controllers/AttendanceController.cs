@@ -10,10 +10,18 @@ public sealed class AttendanceController(ITrainingRepository repo) : AppControll
     {
         var batch=await Batch(id); if(batch is null || day<1 || day>batch.Id("number_of_days")) return NotFound();
         var rows=await Repo.Query("SELECT a.*,t.name,t.username FROM schoolnet.attendance a JOIN schoolnet.batch_assignment ba ON ba.id=a.assignment_id JOIN schoolnet.trainee t ON t.id=ba.trainee_id JOIN schoolnet.trainingplandetails d ON d.training_plan_detail_id=a.training_plan_detail_id WHERE ba.batch_id=@id AND d.day_number=@day ORDER BY t.name",("id",id),("day",day));
-        return View(new Screen {Title="Daily attendance",Item=batch,Day=day,Rows=rows});
+        return View(new Screen {Title="Daily attendance",Item=batch,Day=day,Rows=rows,Attendance=AttendanceAvailability.For(batch,day,Role,DateTime.UtcNow)});
     }
     [HttpPost] public async Task<IActionResult> Save(long id,int day,IFormCollection form,string reason="")
     {
+        var batch=await Batch(id);
+        if(batch is null || day<1 || day>batch.Id("number_of_days")) return NotFound();
+        var availability=AttendanceAvailability.For(batch,day,Role,DateTime.UtcNow);
+        if(!availability.CanMark)
+        {
+            TempData["Error"]=availability.Message;
+            return RedirectToAction(nameof(Index),new{id,day});
+        }
         try
         {
             var rows=new JsonArray();

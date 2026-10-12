@@ -37,6 +37,8 @@ Scheduling serializes access to trainee rows before rechecking overlaps. Schedul
 
 `dotnet build Schoolnet.slnx`
 
+`dotnet run --project tests/AttendancePolicyChecks` checks attendance date availability at the India-midnight boundary and preserves role/lifecycle restrictions. Future dates are read-only in the page and rejected by both the MVC save action and PostgreSQL, including for administrators.
+
 `tests/verify-database.ps1` runs transactional database acceptance checks and rolls back its fixtures. `node tests/verify-http.mjs` checks authenticated screens, role scope, anti-forgery protection, exports and form workflows against the running local server. Local credentials are read from ignored configuration and never printed.
 
 For browser checks, install the workspace-local helper once with `npm install --prefix .local/browser playwright --cache .local/npm-cache --no-audit --no-fund`, then run `node tests/verify-browser.mjs`. It uses installed Microsoft Edge and saves desktop/mobile screenshots in ignored `artifacts`.

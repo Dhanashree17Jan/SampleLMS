@@ -37,5 +37,21 @@ const invalidPage=await admin.page('/Masters/Edit?kind=project');const invalid=a
 const csv=await admin.request('/Reports?export=true');assert.equal(csv.status,200);assert(csv.type.startsWith('text/csv'));assert(csv.text.includes('Teacher Development Essentials'));pass('CSV export contains training records');
 const coordinator=new Session();await coordinator.login('coordinator');const scoped=await coordinator.page('/Batches');assert(!scoped.includes('Digital Educators'));assert(scoped.includes('Classroom Champions'));pass('Coordinator sees only assigned project batches');assert.equal((await coordinator.request('/Batches/Detail/'+completed)).status,404);pass('Coordinator direct request outside project denied');
 const trainer=new Session();await trainer.login('trainer');await trainer.page('/Attendance?id='+ongoing+'&day=3');const adminOnly=await trainer.request('/Masters?kind=user');assert.equal(adminOnly.status,302);assert(adminOnly.location.includes('/Account/Denied'));pass('Trainer administrative access denied');
+const futureBatch=batchId('DEMO-B02');
+function attendanceSnapshot(html){return [...html.matchAll(/<tr>([\s\S]*?)<\/tr>/g)].filter(m=>m[1].includes('name="attendance_id"')).map(m=>({id:m[1].match(/name="attendance_id"[^>]*value="(\d+)"/)[1],revision:m[1].match(/name="revision"[^>]*value="(\d+)"/)[1],status:m[1].match(/<option[^>]*selected[^>]*>([^<]+)<\/option>/)[1]}));}
+const futurePath='/Attendance?id='+futureBatch+'&day=1';
+const futurePage=await admin.page(futurePath),before=attendanceSnapshot(futurePage);assert(before.length>0);
+assert(futurePage.includes('Attendance cannot be marked for a future date.'));assert(!futurePage.includes('Save attendance'));assert(!futurePage.includes('id="mark-present"'));assert(!futurePage.includes('name="reason"'));
+assert([...futurePage.matchAll(/<(?:select|input)[^>]*name="(?:status|remarks)"[^>]*>/g)].every(m=>m[0].includes('disabled')));pass('Future attendance controls are unavailable with a dated explanation');
+for(const [role,session] of [['Administrator',admin],['Coordinator',coordinator],['Trainer',trainer]]){
+ for(const status of ['Present','Absent']){
+  const formPage=await session.page(futurePath);
+  const save=await session.request('/Attendance/Save',{method:'POST',form:{id:futureBatch,day:'1',attendance_id:before[0].id,revision:before[0].revision,status,remarks:'Tampered future entry',reason:'Administrator override',start_date:'2000-01-01',date:'2000-01-01',__RequestVerificationToken:token(formPage)}});
+  assert.equal(save.status,302);const rejected=await session.page(save.location);
+  assert(rejected.includes('Attendance cannot be marked for a future date.'));assert.deepEqual(attendanceSnapshot(rejected),before);
+ }
+ pass(role+' cannot submit future Present or Absent through a tampered POST');
+}
+const invalidDay=await admin.request('/Attendance/Save',{method:'POST',form:{id:futureBatch,day:'0',__RequestVerificationToken:token(await admin.page(futurePath))}});assert.equal(invalidDay.status,404);pass('Attendance preflight rejects invalid stored batch day');
 const learner=new Session();await learner.login('trainee');const personal=await learner.page('/Batches/Detail/'+ongoing);assert(personal.includes('Ananya Sharma'));assert(!personal.includes('Rahul Deshmukh'));pass('Trainee sees only own roster record');assert.equal((await learner.request('/Batches/Detail/'+completed)).status,404);pass('Trainee direct request for another batch denied');const otherAssignment=[...detail.matchAll(/\/Feedback\?assignment=(\d+)&(?:amp;)?day=1/g)].map(m=>m[1]).find(id=>id!==ownAssignment);assert.equal((await learner.request('/Feedback?assignment='+otherAssignment+'&day=1')).status,404);pass('Trainee cannot access another trainee feedback');const personalCsv=await learner.request('/Reports?export=true');assert(!personalCsv.text.includes('Rahul Deshmukh'));assert(personalCsv.text.includes('Ananya Sharma'));pass('Trainee export contains only own records');
 console.log(`${checks} HTTP checks passed.`);
