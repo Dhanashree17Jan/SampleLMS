@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+.vs/
+.keys/
+.local/
+.nuget/
+.dotnet/
+artifacts/
+**/appsettings.Local.json
+*.user
+*.log

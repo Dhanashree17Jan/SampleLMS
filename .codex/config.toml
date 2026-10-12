@@ -1,0 +1,18 @@
+[agents]
+enabled = true
+
+[agents.csharp_developer]
+description = "Implement and fix Schoolnet C# MVC controllers, domain models, repositories, authentication, and PostgreSQL routines."
+config_file = "agents/csharp_developer.toml"
+
+[agents.html_developer]
+description = "Implement and refine Schoolnet Razor cshtml views, HTML, CSS, JavaScript, responsive layouts, accessibility, and form interactions."
+config_file = "agents/html_developer.toml"
+
+[agents.tester]
+description = "Verify Schoolnet PRD acceptance criteria through builds, transactional PostgreSQL tests, HTTP role checks, and desktop/mobile browser tests."
+config_file = "agents/tester.toml"
+
+[agents.code_reviewer]
+description = "Review Schoolnet C#, PostgreSQL, Razor, JavaScript and tests for concrete correctness, security, regressions, and PRD gaps."
+config_file = "agents/code_reviewer.toml"
