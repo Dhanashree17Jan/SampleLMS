@@ -1,0 +1,22 @@
+@{ var current=ViewContext.RouteData.Values["controller"]?.ToString(); var kind=Context.Request.Query["kind"].ToString(); var signed=User.Identity?.IsAuthenticated==true; var admin=User.IsInRole("Administrator"); var manager=admin||User.IsInRole("Coordinator"); }
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>@ViewData["Title"] · Schoolnet Training</title><link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/></head>
+<body class="@(signed?"":"signed-out")">
+<a href="#main" class="skip">Skip to content</a>
+@if(signed) {
+<aside class="sidebar"><a class="brand" href="/"><span><img class="brand-logo" src="~/images/schoolnet-logo.png" alt="Schoolnet · Learning for Life"/><small>TRAINING MANAGEMENT</small></span></a><div class="nav-label">WORKSPACE</div>
+<nav aria-label="Main navigation"><a class="@(current=="Home"?"active":"")" href="/"><span class="nav-icon">▦</span> Dashboard</a>
+@if(manager) {<a class="@(kind=="project"?"active":"")" href="/Masters?kind=project"><span class="nav-icon">▱</span> Projects</a><a class="@(kind=="school"?"active":"")" href="/Masters?kind=school"><span class="nav-icon">⌂</span> Schools</a><a class="@(kind=="trainee"?"active":"")" href="/Masters?kind=trainee"><span class="nav-icon">♧</span> Trainees</a>}
+@if(!User.IsInRole("Trainee")) {<a class="@(current=="Plans"?"active":"")" href="/Plans"><span class="nav-icon">▤</span> Training plans</a>}
+<a class="@(current=="Batches"||current=="Attendance"||current=="Feedback"?"active":"")" href="/Batches"><span class="nav-icon">▦</span> Batches</a><a class="@(current=="Reports"?"active":"")" href="/Reports"><span class="nav-icon">▥</span> Reports</a>
+@if(admin) {<div class="nav-label">ADMINISTRATION</div><a href="/Masters?kind=template"><span class="nav-icon">☷</span> Feedback templates</a><a href="/Masters?kind=location"><span class="nav-icon">⌖</span> Locations</a><a href="/Masters?kind=user"><span class="nav-icon">♧</span> Users & permissions</a><a href="/Reports/Audit"><span class="nav-icon">◷</span> Audit history</a>}
+</nav><div class="sidebar-footer"><span class="live-dot"></span> Learning that makes a difference<small>Schoolnet India · Training workspace</small></div></aside>
+<div class="workspace"><header class="topbar"><button class="menu-toggle" aria-label="Toggle navigation" type="button">☰</button><span>Training Management <span class="breadcrumb">/ @ViewData["Title"]</span></span><div class="profile"><span class="avatar">@(User.Identity!.Name![0])</span><span>@User.Identity.Name<small>@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</small></span><form method="post" action="/Account/Logout">@Html.AntiForgeryToken()<button class="text-button" type="submit">Sign out</button></form></div></header>
+<main id="main">
+@if(TempData["Success"] is string success) {<div class="notice success" role="status">@success</div>}
+@if(TempData["Error"] is string error) {<div class="notice error" role="alert">@error</div>}
+@RenderBody()
+</main><footer class="page-footer">© @DateTime.Now.Year Schoolnet India <span>Every teacher. Every learner. Every possibility.</span></footer></div>
+} else {<main id="main">@RenderBody()</main>}
+<script src="~/js/site.js" asp-append-version="true" defer></script>@await RenderSectionAsync("Scripts",required:false)
+</body></html>

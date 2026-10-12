@@ -1,0 +1,7 @@
+@model Screen
+@{ViewData["Title"]=Model.Title;}
+<div class="page-heading"><div><span class="eyebrow">CONSISTENT LEARNING</span><h1>Training plans</h1><p>Create numbered activities once. Reuse them across projects, schools and batches.</p></div>@if(User.IsInRole("Administrator")){<a class="button" href="/Plans/Edit">+ Create plan</a>}</div>
+<form class="panel filterbar" method="get"><label>Find a plan<input name="search" value="@Context.Request.Query["search"]" placeholder="Plan name or code"/></label><button class="button">Search</button><a href="/Plans">Reset</a></form><div class="plan-grid">
+@foreach(var p in Model.Rows){<article class="panel plan-card"><div class="card-top"><span class="badge @(p.Text("status")=="Published"?"green":p.Text("status")=="Draft"?"orange":"gray")">@p.Text("status")</span><span class="muted">v@p.Text("version_number")</span></div><span class="eyebrow">@p.Text("plan_code")</span><h2><a href="/Plans/Detail/@p.Id()">@p.Text("plan_name")</a></h2><p class="muted">@p.Text("description")</p><div class="plan-meta"><span><strong>@p.Text("number_of_days")</strong> numbered days</span><span><strong>@p.Text("batches")</strong> linked batches</span></div><div class="plan-sequence"><span>Initial feedback</span><span>→ Classroom →</span><span>Final feedback</span></div><a class="table-link" href="/Plans/Detail/@p.Id()">View activities →</a></article>}
+@if(Model.Rows.Count==0){<section class="panel empty">No training plans found.</section>}
+</div>

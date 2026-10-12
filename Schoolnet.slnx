@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Schoolnet.Domain/Schoolnet.Domain.csproj" />
+  <Project Path="Schoolnet.Repository/Schoolnet.Repository.csproj" />
+  <Project Path="Schoolnet.WEBUI/Schoolnet.WEBUI.csproj" />
+</Solution>

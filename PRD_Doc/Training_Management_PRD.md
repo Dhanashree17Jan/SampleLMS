@@ -235,6 +235,10 @@ Use these definitions consistently:
 
 ## Core screens and workflow
 
+### Create training plan update
+
+The create form defaults to four training days. A four-day plan contains exactly four activities: Day 1 **Pre form**, Days 2 and 3 **Classroom training**, and Day 4 **Feedback**. Choosing another supported duration N automatically shows exactly N numbered rows before saving. Pre form uses the initial boundary feedback template and submission workflow; the final Feedback uses the final boundary workflow. Both remain stored as Feedback activity types. Existing Published plans and recorded training history retain their saved content.
+
 | Screen | Main actions |
 | --- | --- |
 | Dashboard | View batch status, upcoming activities, missing attendance, and feedback completion. |
