@@ -1,0 +1,4 @@
+interface:
+  display_name: "Schoolnet Style"
+  short_description: "Schoolnet blue/green styling for web pages and guides"
+  default_prompt: "Use $schoolnet-style to create or refine the requested page using Schoolnet branding and the supplied visual reference."
