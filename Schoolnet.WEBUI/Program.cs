@@ -40,6 +40,7 @@ if (args.Contains("--initialize"))
     var hash=scope.ServiceProvider.GetRequiredService<PasswordHasher<string>>().HashPassword("admin",password);
     var path=Path.Combine(AppContext.BaseDirectory,"database/001_schema.sql");
     await repository.Initialize(await File.ReadAllTextAsync(path),hash);
+    await repository.Execute(await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory,"database/003_modify_trainee.sql")));
     if(args.Contains("--seed"))
     {
         // Seed is run on a single connection so the hash is passed as a SQL parameter.

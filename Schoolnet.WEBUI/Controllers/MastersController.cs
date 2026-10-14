@@ -34,6 +34,47 @@ public sealed class MastersController(ITrainingRepository repo,PasswordHasher<st
         if(item is null) return NotFound();
         return View(new Screen { Title=(id==0?"Add ":"Edit ")+Titles[kind],Kind=kind,Item=item,Choices=await Repo.Choices(Actor) });
     }
+    public async Task<IActionResult> ModifyTrainee(long id)
+    {
+        var item=await Trainee(id);
+        if(item is null) return NotFound();
+        return View(new Screen { Title="Modify Trainee",Kind="trainee",Item=item });
+    }
+    [HttpPost] public async Task<IActionResult> ModifyTrainee(long id,IFormCollection form)
+    {
+        var item=await Trainee(id);
+        if(item is null) return NotFound();
+        // Only these contact fields are accepted. Association and login values come from the stored record.
+        var data=new JsonObject();
+        foreach(var field in new[]{"name","mobile","email","reason"})
+        {
+            var value=form[field].ToString().Trim();
+            data[field]=value; item[field]=value;
+        }
+        var error=ValidateTraineeContact(data);
+        if(error=="")
+        {
+            try
+            {
+                await Repo.Save("save_trainee_contact",id,data.ToJsonString(),Actor);
+                TempData["Success"]="Trainee contact details updated successfully.";
+                return RedirectToAction(nameof(Index),new {kind="trainee"});
+            }
+            catch(Exception ex) { error=Friendly(ex); }
+        }
+        return View(new Screen { Title="Modify Trainee",Kind="trainee",Item=item,Error=error });
+    }
+    private Task<Record?> Trainee(long id) => Repo.One(Select("trainee")+" AND t.id=@id",("actor",Actor),("id",id));
+    private static string ValidateTraineeContact(JsonObject data)
+    {
+        var name=data["name"]!.ToString(); var mobile=data["mobile"]!.ToString();
+        var email=data["email"]!.ToString(); var reason=data["reason"]!.ToString();
+        if(name.Length is <1 or >200) return "Enter a name between 1 and 200 characters.";
+        if(!System.Text.RegularExpressions.Regex.IsMatch(mobile,@"\A\+?[0-9]{10,15}\z")) return "Enter a mobile number with 10 to 15 digits and an optional +.";
+        if(email.Length>254 || !System.Text.RegularExpressions.Regex.IsMatch(email,@"\A[^\s@]+@[^\s@]+\.[^\s@]+\z")) return "Enter a valid email address of up to 254 characters.";
+        if(reason.Length is <1 or >1000) return "Enter a correction reason between 1 and 1000 characters.";
+        return "";
+    }
     [HttpPost] public async Task<IActionResult> Edit(string kind,long id,IFormCollection form)
     {
         if(!Allowed(kind,true)) return Forbid();

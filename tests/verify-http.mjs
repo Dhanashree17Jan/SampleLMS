@@ -36,7 +36,23 @@ const csrf=await admin.request('/Batches/Transition',{method:'POST',form:{id:dra
 const invalidPage=await admin.page('/Masters/Edit?kind=project');const invalid=await admin.request('/Masters/Edit?kind=project',{method:'POST',form:{kind:'project',id:'0',name:'',code:'',active:'true',__RequestVerificationToken:token(invalidPage)}});assert.equal(invalid.status,200);assert(invalid.text.includes('Check the required fields'));pass('Invalid form returns a visible validation error');
 const csv=await admin.request('/Reports?export=true');assert.equal(csv.status,200);assert(csv.type.startsWith('text/csv'));assert(csv.text.includes('Teacher Development Essentials'));pass('CSV export contains training records');
 const coordinator=new Session();await coordinator.login('coordinator');const scoped=await coordinator.page('/Batches');assert(!scoped.includes('Digital Educators'));assert(scoped.includes('Classroom Champions'));pass('Coordinator sees only assigned project batches');assert.equal((await coordinator.request('/Batches/Detail/'+completed)).status,404);pass('Coordinator direct request outside project denied');
+const traineeDirectory=await admin.page('/Masters?kind=trainee');
+const traineeIds=[...traineeDirectory.matchAll(/href="\/Masters\/ModifyTrainee\/(\d+)"/g)].map(m=>m[1]);assert(traineeIds.length>0);pass('Modify trainee action appears in directory');
+const coordinatorDirectory=await coordinator.page('/Masters?kind=trainee');
+const ownTrainee=coordinatorDirectory.match(/href="\/Masters\/ModifyTrainee\/(\d+)"/)[1];
+const foreignTrainee=traineeIds.find(id=>!coordinatorDirectory.includes('/Masters/ModifyTrainee/'+id+'"'));assert(foreignTrainee);
+const modifyPath='/Masters/ModifyTrainee/'+ownTrainee;
+const modifyPage=await coordinator.page(modifyPath);
+const contact={name:modifyPage.match(/name="name"[^>]*value="([^"]*)"/)[1],mobile:modifyPage.match(/name="mobile"[^>]*value="([^"]*)"/)[1],email:modifyPage.match(/name="email"[^>]*value="([^"]*)"/)[1],reason:'HTTP verification of existing contact details'};
+for(const [field,value,message] of [['name',' ','Enter a name'],['mobile','123','Enter a mobile number'],['email','bad','Enter a valid email'],['reason',' ','Enter a correction reason']]){
+ const invalidContact=await coordinator.request(modifyPath,{method:'POST',form:{...contact,[field]:value,__RequestVerificationToken:token(modifyPage)}});assert.equal(invalidContact.status,200);assert(invalidContact.text.includes(message));
+}pass('Contact correction validates all three fields and reason on server');
+assert.equal((await coordinator.request(modifyPath,{method:'POST',form:contact})).status,400);pass('Contact correction requires antiforgery token');
+assert.equal((await coordinator.request('/Masters/ModifyTrainee/'+foreignTrainee)).status,404);
+assert.equal((await coordinator.request('/Masters/ModifyTrainee/'+foreignTrainee,{method:'POST',form:{...contact,__RequestVerificationToken:token(modifyPage)}})).status,404);pass('Coordinator contact GET and POST reject trainees outside assigned projects');
+assert.equal((await admin.request('/Masters/ModifyTrainee/9223372036854775807')).status,404);pass('Unknown trainee modification returns 404');
 const trainer=new Session();await trainer.login('trainer');await trainer.page('/Attendance?id='+ongoing+'&day=3');const adminOnly=await trainer.request('/Masters?kind=user');assert.equal(adminOnly.status,302);assert(adminOnly.location.includes('/Account/Denied'));pass('Trainer administrative access denied');
+const trainerModify=await trainer.request(modifyPath);assert.equal(trainerModify.status,302);assert(trainerModify.location.includes('/Account/Denied'));pass('Trainer contact correction denied');
 const futureBatch=batchId('DEMO-B02');
 function attendanceSnapshot(html){return [...html.matchAll(/<tr>([\s\S]*?)<\/tr>/g)].filter(m=>m[1].includes('name="attendance_id"')).map(m=>({id:m[1].match(/name="attendance_id"[^>]*value="(\d+)"/)[1],revision:m[1].match(/name="revision"[^>]*value="(\d+)"/)[1],status:m[1].match(/<option[^>]*selected[^>]*>([^<]+)<\/option>/)[1]}));}
 const futurePath='/Attendance?id='+futureBatch+'&day=1';

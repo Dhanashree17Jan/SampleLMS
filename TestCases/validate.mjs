@@ -25,7 +25,7 @@ const root = new URL('./', import.meta.url);
 const [columns, ...rows] = parseCsv(fs.readFileSync(new URL('test-cases.csv', root), 'utf8'));
 const expected = ['ID','Module','Requirements','Title','Role','Priority','Prerequisites','TestData','Steps','ExpectedResult','AutomationReference','Status','ActualResult','Evidence','DefectID'];
 assert.deepEqual(columns, expected);
-assert.equal(rows.length, 145);
+assert.equal(rows.length, 153);
 const ids = new Set(); const mapped = new Set(); const modules = new Map();
 for (const row of rows) {
   assert.equal(row.length, columns.length, 'CSV column count');

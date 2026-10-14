@@ -1,0 +1,16 @@
+@model Screen
+@{ ViewData["Title"]=Model.Title; var r=Model.Item; }
+<div class="page-heading"><div><span class="eyebrow">TRAINEE DIRECTORY</span><h1>Modify Trainee</h1><p>Update the trainee's name and contact details. Fields marked * are required.</p></div><a class="button secondary" href="/Masters?kind=trainee">Back to directory</a></div>
+@if(Model.Error!=""){<div class="notice error" role="alert">@Model.Error</div>}
+<form method="post" class="panel form-panel">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@r.Id()"/>
+    <p><strong>@r.Text("username")</strong> · @r.Text("project") · @r.Text("school")</p>
+    <div class="form-grid">
+        <label>Name *<input name="name" value="@r.Text("name")" required maxlength="200" autocomplete="name"/></label>
+        <label>Mobile number *<input name="mobile" type="tel" value="@r.Text("mobile")" required pattern="\+?[0-9]{10,15}" maxlength="16" autocomplete="tel" placeholder="10–15 digits, optional +"/></label>
+        <label>Email address *<input name="email" type="email" value="@r.Text("email")" required maxlength="254" autocomplete="email"/></label>
+        <div class="span-2"><label for="correction-reason">Correction reason *</label><textarea id="correction-reason" name="reason" required maxlength="1000" rows="3" aria-describedby="reason-hint">@r.Text("reason")</textarea><small id="reason-hint">Explain the change for the trainee's audit history.</small></div>
+    </div>
+    <div class="form-actions"><button class="button" type="submit">Save changes</button><a class="button secondary" href="/Masters?kind=trainee">Cancel</a></div>
+</form>

@@ -35,7 +35,7 @@ public sealed class TrainingRepository(NpgsqlDataSource source) : ITrainingRepos
     public async Task<long> Save(string routine, long id, string json, long actor)
     {
         // Routine names come exclusively from controllers, never request data.
-        if (routine is not ("save_plan" or "save_batch") && !routine.StartsWith("master:", StringComparison.Ordinal)) throw new ArgumentException("Unknown routine");
+        if (routine is not ("save_plan" or "save_batch" or "save_trainee_contact") && !routine.StartsWith("master:", StringComparison.Ordinal)) throw new ArgumentException("Unknown routine");
         var sql = routine.StartsWith("master:",StringComparison.Ordinal)
             ? "SELECT schoolnet.save_master(@kind,@id,@data,@actor) AS id"
             : $"SELECT schoolnet.{routine}(@id,@data,@actor) AS id";

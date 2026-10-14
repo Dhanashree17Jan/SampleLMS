@@ -21,6 +21,7 @@ Optional demo users `coordinator`, `trainer`, and `trainee` use the same bootstr
 - `Schoolnet.WEBUI/wwwroot`: responsive Schoolnet styling, local logo and client interactions.
 - `database/001_schema.sql`: tables, views, constraints, triggers, functions and stored procedures.
 - `database/002_demo.sql`: optional local sample data.
+- `database/003_modify_trainee.sql`: non-destructive installation of audited trainee contact corrections; included by `./run.ps1 -Initialize`. Existing installations can apply this SQL file directly to `Testdb` without seeding or resetting data. Normal startup does not apply migrations.
 - `tests`: database integrity and HTTP workflow checks.
 
 ## Database operations
@@ -32,6 +33,8 @@ Shared plan headers and details have no calendar dates. Batches reference existi
 Create training plan defaults to **four days**: **Pre form**, **Classroom training**, **Classroom training**, and **Feedback**. Changing the duration automatically shows exactly that many activities; the server rejects inconsistent submitted row counts. Boundary forms use the existing versioned feedback engine, and existing Published plans keep their original saved activities.
 
 Scheduling serializes access to trainee rows before rechecking overlaps. Scheduled dates and roster lock. Scheduled batches display In progress once the start date is reached; operations use the application day in Asia/Kolkata. CSV exports respect record permissions and escape spreadsheet formula prefixes.
+
+In the Trainees directory, **Modify** lets administrators and authorized project coordinators correct a trainee's name, mobile number and email address. A correction reason is required and retained with the old and new values in the audit history. Contact corrections are available during scheduled training and for existing inactive project/school associations; username, login, status, associations and training records stay unchanged. Use the existing **Edit** action for other permitted profile changes.
 
 ## Build and verify
 

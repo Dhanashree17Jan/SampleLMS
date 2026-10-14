@@ -1,6 +1,6 @@
 # Schoolnet project test cases
 
-This suite contains **145 written test cases** for the whole Schoolnet Training Management MVC project. It is based on [PRD v1.2](../PRD_Doc/Training_Management_PRD.md), including the four-day **Pre form / Classroom training / Feedback** create-form update, and [repository guidance](../AGENTS.md). Every case starts **Not Run**. Creating these documents does not establish product acceptance or successful execution.
+This suite contains **153 written test cases** for the whole Schoolnet Training Management MVC project. It is based on [PRD v1.2](../PRD_Doc/Training_Management_PRD.md), including the four-day **Pre form / Classroom training / Feedback** create-form update, and [repository guidance](../AGENTS.md). The attendance update adds eight focused future-date scenarios and separates Draft rejection from future-date rejection. Future marking remains prohibited for Administrator, Coordinator and Trainer under FR15/AC23. Every case starts **Not Run**. Creating these documents does not establish product acceptance or successful execution.
 
 [test-cases.csv](test-cases.csv) is the machine-readable execution register. Each case includes an ID, role, priority, prerequisites, concrete data, steps, expected result, source requirement, existing automation reference, status, actual result, evidence and defect ID. Module Markdown files provide readable case definitions. [TRACEABILITY.md](TRACEABILITY.md) maps all **FR01–FR21** and **AC01–AC23**.
 
@@ -13,7 +13,7 @@ This suite contains **145 written test cases** for the whole Schoolnet Training 
 | Feedback templates | 7 | [template.md](template.md) |
 | Batch setup and scheduling | 14 | [batch.md](batch.md) |
 | Roster and eligibility | 10 | [roster.md](roster.md) |
-| Attendance and concurrency | 12 | [att.md](att.md) |
+| Attendance and concurrency | 20 | [att.md](att.md) |
 | Initial, final and offline feedback | 11 | [fb.md](fb.md) |
 | Lifecycle and dashboard | 10 | [life.md](life.md) |
 | Reports and CSV exports | 9 | [report.md](report.md) |

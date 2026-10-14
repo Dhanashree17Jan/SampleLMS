@@ -117,3 +117,174 @@ push the chats.md file to github
 ### Assistant — progress update
 
 I’ll commit and push only `chats.md` to GitHub.
+
+### Assistant
+
+Pushed [chats.md](https://github.com/Dhanashree17Jan/SampleLMS/blob/main/chats.md) to GitHub `main`.
+
+Commit: `626677b` — only `chats.md` was included.
+
+### User
+
+how to create oled doc
+
+### Assistant — progress update
+
+I’ll read the OLED document skill’s instructions so I can explain how to use it.
+
+### Assistant
+
+An OLED doc is an HTML document with a pure-black background, white/gray text, and interactive diagrams.
+
+Ask me, for example:
+
+> Use oled-doc to create a document explaining the Schoolnet Modify Trainee feature, including its workflow, validations, permissions, and audit history. Save it as docs/modify-trainee.html.
+
+I’ll create a single HTML file you can open in Chrome or Edge. It works offline and includes clickable steps with Back/Next navigation.
+
+### User
+
+pls create oled doc for create batch
+
+### Assistant — progress update
+
+I’ll use the OLED document skill to create a guide for Create Batch, based on the app’s current fields, rules, and workflow.
+
+### Assistant — progress update
+
+The guide is written with a Create Batch walkthrough, field reference, and date calculator. I’ll now check the controls and layout on desktop and mobile.
+
+### Assistant
+
+Created [Create Batch OLED guide](docs/create-batch.html) with interactive steps, form rules, and a date calculator. Desktop/mobile and offline checks passed. Open it in Chrome or Edge; the file works standalone.
+
+### User
+
+create a skill depending on schoolnet style as shown in thsi image [Image #1] and add in skill
+
+Attached Schoolnet website screenshot is preserved in `skills/schoolnet-style/assets/schoolnet-reference.png`.
+
+### Assistant — progress update
+
+I’ll use the skill-creator skill to create a reusable Schoolnet styling skill based on your screenshot, including its blue/green palette, typography, spacing, and page layouts.
+
+### Assistant — progress update
+
+I’ll name the skill `schoolnet-style`. It will capture the screenshot’s light backgrounds, blue accents, green buttons, logo placement, and spacious layouts, with guidance for applying them to LMS screens. The colors will be reference-based approximations, not an official brand specification.
+
+### User
+
+what is the path
+
+### Assistant — progress update
+
+The skill source is at `D:\Projects\AI_Training\SampleLMS\skills\schoolnet-style\SKILL.md`.
+
+I’m finishing validation, then I’ll add it to `C:\Users\dhanashree.thigale\.codex\skills\schoolnet-style` for reuse.
+
+### User
+
+how others can insttal this guide
+
+### Assistant — progress update
+
+Others can copy the whole `schoolnet-style` folder into their own `.codex\skills` folder, including its assets and references. They can then invoke it with `$schoolnet-style`. I’ll include the Windows and macOS/Linux paths in the handoff.
+
+### Assistant — progress update
+
+I’m checking the official OpenAI documentation for the current skill installation paths so the sharing instructions are accurate.
+
+### Assistant — progress update
+
+The skill and its desktop/mobile styling preview passed validation. I also created a ZIP for sharing.
+
+The current OpenAI documentation recommends `.agents/skills` for teammates; this session’s skill-creator uses `.codex/skills`. I’ll install your copy in that existing location.
+
+### Assistant
+
+Created and installed `schoolnet-style` at `C:\Users\dhanashree.thigale\.codex\skills\schoolnet-style\SKILL.md`.
+
+To share it, send `artifacts/schoolnet-style.zip`. Others should extract the entire `schoolnet-style` folder into `%USERPROFILE%\.agents\skills\` on Windows or `~/.agents/skills/` on macOS/Linux. These are the current user skill locations in the [official OpenAI documentation](https://learn.chatgpt.com/docs/build-skills). Restart Codex if it does not appear.
+
+Example: `Use $schoolnet-style to create a Schoolnet Create Batch guide.`
+
+### User
+
+what will be the command to install my skill
+
+### User
+
+push the style to git
+
+### Assistant — progress update
+
+I’ll push the `schoolnet-style` folder to GitHub, then give you the command others can use to install it.
+
+### Assistant
+
+Pushed [schoolnet-style](https://github.com/Dhanashree17Jan/SampleLMS/tree/main/skills/schoolnet-style) to GitHub `main`, commit `f41fef2`.
+
+To install it, paste this into Codex chat:
+
+```text
+$skill-installer install https://github.com/Dhanashree17Jan/SampleLMS/tree/main/skills/schoolnet-style
+```
+
+### User
+
+why we use codex plugin
+
+### Assistant — progress update
+
+I’ll check the official OpenAI documentation to explain how plugins differ from your Schoolnet skill.
+
+### Assistant
+
+We use a **Codex plugin** to package reusable capabilities so people can install and share them easily. It can include skills, supporting resources, and connections to external services. [Official OpenAI documentation](https://developers.openai.com/plugins/concepts/plugins).
+
+For example, a Schoolnet plugin could bundle:
+
+- **Schoolnet styling:** apply your logo, colors, and layouts consistently.
+- **Documentation workflows:** create guides using an agreed format.
+- **Service tools:** connect to GitHub or Azure DevOps through an MCP server.
+
+Your `schoolnet-style` is currently a **standalone skill**. It is enough for reusable styling guidance. A plugin becomes useful when you want to distribute several related skills or include service connections in one package.
+
+### User
+
+what is in this codex plugin marketplace add rakeshbhugra/skills-marketplace
+codex plugin add oled-doc@rakesh-skills
+
+### Assistant — progress update
+
+I’ll check the Rakesh marketplace and explain what those two commands add.
+
+### Assistant — progress update
+
+I’m using the plugin-management guidance for this check. The OLED Doc plugin is already available in your session, so I’ll inspect its local package too.
+
+### Assistant
+
+These are terminal commands for adding a plugin source and installing a plugin:
+
+```powershell
+codex plugin marketplace add rakeshbhugra/skills-marketplace
+```
+
+Registers the GitHub repository as a marketplace named `rakesh-skills`. It makes its plugins available for installation.
+
+```powershell
+codex plugin add oled-doc@rakesh-skills
+```
+
+Installs only the `oled-doc` plugin from that marketplace. `@rakesh-skills` identifies the source. [Official command documentation](https://learn.chatgpt.com/docs/developer-commands).
+
+The local marketplace snapshot lists:
+
+| Plugin | Purpose |
+| --- | --- |
+| oled-doc | Creates black, monochrome HTML documents with interactive step-by-step diagrams. |
+| commit-code | Groups changes into small commits. |
+| code-taste-python | Reviews Python backend structure and architecture. |
+
+OLED Doc is already available in your session; we used it for the Create Batch guide. Your `schoolnet-style` skill is maintained separately in your GitHub repository.
